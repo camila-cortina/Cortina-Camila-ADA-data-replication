@@ -1,0 +1,88 @@
+---
+title: "Cortina-Camila-ADA-data-replication"
+author: "Camila Cortina"
+date: "4/13/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+#Data Replication Assignment
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = TRUE,
+	message = TRUE,
+	comment = "##",
+	prompt = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(blank = FALSE, width.cutoff = 75),
+	fig.path = "img/",
+	fig.align = "center"
+)
+```
+
+## Introduction
+
+[Include a summary of the paper you are reanalyzing data from]
+
+```{r}
+#Loading in the datasets
+library(dplyr)
+Bees<- read_csv("Bee Table Dryad_010119.csv")
+Plants<- read_csv("Floral Data Dryad.csv")
+Sites<- read_csv("Site and Landscape Dryad.csv")
+```
+
+## Visualization of Data
+
+[Include a view of the first few lines of the data set plus exploratory data analysis - e.g., overview of descriptive statistics included in the paper, plots, etc.
+
+```{r}
+#exploratory data analysis 
+head(Bees)
+head(Plants)
+head(Sites)
+#creating a category to define the species combining the genus and species name 
+Bees$full_species_name<- paste(Bees$insect_genus, Bees$insect_species, sep = "_")
+Bees<- Bees%>% filter(nest_location != "NA") #takes out ant NAs
+
+#averaging the %vegetation/bare ground/litter at each site across the three time points
+Sites2<- Sites %>% group_by(Site) %>% summarise(percent_veg = mean(`% Vegetation`), percent_litter = mean(`% Litter`), percent_bare = mean(`% Bare`), percent_rocky = mean(`% Rocky/Other`), percent_canopy = mean(`% Canopy Cover`))
+
+#filtering out the rows of sites with NAs
+Sites<- filter(Sites, `Heteogeniety (# Patches)`>0)
+#combining the two data frames
+Sites<- merge(Sites, Sites2, by = "Site")
+Bees$count<- 1
+Bees$sample_period<- substr(Bees$sample_start_date, 1,1)
+Bees$Site_with_date<- paste(Bees$Site, Bees$sample_period, sep = "_")
+Site_management<- select(Sites, Site, Management)
+Bees<- merge(Bees, Site_management, by = "Site")
+
+#Calculating mean abundances at each site 
+abundance<- Bees%>%group_by(Site_with_date)%>%summarise(sum(count))
+mean(abundance$`sum(count)`)
+se<- sd(abundance$`sum(count)`)/sqrt(120)
+
+#Calculating abundance at the agricultural sites
+abundance_ag<- Bees%>%filter(Management == "Cultivated")%>%group_by(Site_with_date)%>%summarise(sum(count))
+mean(abundance_ag$`sum(count)`)
+se_ag<- sd(abundance_ag$`sum(count)`)/sqrt(60)
+
+#Calculating abundance at the grassland sites
+abundance_grass<- Bees%>%filter(Management == "Grassland")%>%group_by(Site_with_date)%>%summarise(sum(count))
+mean(abundance_grass$`sum(count)`)
+se_grass<- sd(abundance_grass$`sum(count)`)/sqrt(60)
+
+```
+
+## Replications/Reanalysis
+
+[Be sure to explain what replications you are doing and comment your code so that it is easy for a reader to understand. Include in this section relevant tables/figures/values from the original paper for comparison to what you accomplished with your replication.]
+
+## Summary/Discussion
+
+[How successful were you at replicating the analyses and visualizations in the study? What problems did you encounter? Why might you have encountered those problems? What details were lacking from the original study's methods that might have hampered your ability to replicate the authors' results?]
+
+## References

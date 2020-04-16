@@ -1,0 +1,17 @@
+---
+title: "Cortina-Camila-ADA-data-replication"
+author: "Camila Cortina"
+date: "4/13/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+#Data Replication Assignment
+```{r}
+#Loading in the datasets
+Bees<- read_csv("Bee Table Dryad_010119.csv")
+Plants<- read_csv("Floral Data Dryad.csv")
+Sites<- read_csv("Site and Landscape Dryad.csv")
+```
+
+
